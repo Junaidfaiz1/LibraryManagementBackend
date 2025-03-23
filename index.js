@@ -4,11 +4,13 @@ dotenv.config();
 import connectDB from "./config/Database.js";
 import bookRoutes from "./Routes/Book.Routes.js";
 import userRoutes from "./Routes/User.Routes.js";
+import cors from "cors";
 
 const app = express();
 
 connectDB();
 
+app.use(cors());
 app.use(express.json());
 app.use("/api", bookRoutes);
 app.use("/api", userRoutes);

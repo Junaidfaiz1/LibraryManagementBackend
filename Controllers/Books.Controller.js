@@ -3,16 +3,17 @@ import cloudinary from "../config/cloudinary.js";
 
 export const addBook = async (req, res) => {
   try {
-    const { title, author, quantity } = req.body;
+    const { title, author, quantity, image } = req.body;
 
     // Check for file first
-    if (!req.file) {
-      return res.status(400).json({ message: "Please upload an image" });
+    if (!image) {
+      return res.status(400).json({ message: "Please provide an image" });
     }
 
     // Upload to cloudinary using the file path
-    const result = await cloudinary.uploader.upload(req.file.path, {
+    const result = await cloudinary.uploader.upload(image, {
       folder: "BookStore",
+      resource_type: "auto",
     });
 
     const newBook = new Book({
@@ -23,7 +24,10 @@ export const addBook = async (req, res) => {
     });
 
     await newBook.save();
-    res.status(201).json(newBook);
+    res.status(200).json({
+      newBook,
+      message: "Book added successfully",
+    });
   } catch (error) {
     console.error("Upload error:", error);
     res.status(500).json({ error: error.message });
