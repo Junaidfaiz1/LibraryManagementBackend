@@ -3,7 +3,9 @@ import {
     loginUser,
     getUsers,
     getUserCount,
-    getUserForDashboard
+    getUserForDashboard,
+    deleteUser,
+    NewMembers
 } from "../Controllers/User.Controller.js";
 
 import express from "express";
@@ -14,5 +16,7 @@ router.post("/login", loginUser);
 router.get("/users", getUsers);
 router.get("/usercount", getUserCount);
 router.get("/userdashboard", getUserForDashboard);
+router.delete("/deleteuser/:id", deleteUser);
+router.get("/newmembers", NewMembers);
 
 export default router;

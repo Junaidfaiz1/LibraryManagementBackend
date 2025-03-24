@@ -65,7 +65,9 @@ export const deleteBook = async (req, res) => {
   try {
     const id = req.params.id;
     const book = await Book.findByIdAndDelete(id);
-    res.status(200).json(book);
+    const books = await Book.find({}).limit(4);
+
+    res.status(200).json(books);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
