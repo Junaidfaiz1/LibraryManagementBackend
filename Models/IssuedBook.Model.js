@@ -22,14 +22,15 @@ const IssuedBookSchema = new mongoose.Schema({
         required: true
     },
     status: {
+        type: String,
         enum: ["issued", "returned"],
         default: "issued"
     },
-    fine: {
-        type: Number,
-        default: 0
-    }
-
+    overdue:{
+        type: String,
+        enum: ["paid", "unpaid"],
+        default: "unpaid",
+    },
 });
 
 const IssuedBook = mongoose.model("IssuedBook", IssuedBookSchema);

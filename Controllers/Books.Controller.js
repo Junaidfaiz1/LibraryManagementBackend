@@ -72,3 +72,12 @@ export const deleteBook = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const TopChoices = async (req, res) => {
+  try {
+    const Bookimg = await Book.find({}).select("image author").limit(10);
+    res.status(200).json(Bookimg);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

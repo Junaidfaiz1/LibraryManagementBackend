@@ -4,6 +4,7 @@ import {
   getBookCount,
   getBookForDashboard,
   deleteBook,
+  TopChoices
 } from "../Controllers/Books.Controller.js";
 import express from "express";
 
@@ -14,5 +15,5 @@ router.get("/books", getBooks);
 router.get("/bookcount", getBookCount);
 router.get("/bookdashboard", getBookForDashboard);
 router.delete("/deletebook/:id", deleteBook);
-
+router.get("/topchoices", TopChoices);
 export default router;
