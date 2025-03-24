@@ -81,3 +81,13 @@ export const TopChoices = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+export const BookNames = async (req, res) => {
+  try {
+    const BookName = await Book.find({}).select("title _id");
+    res.status(200).json(BookName);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}

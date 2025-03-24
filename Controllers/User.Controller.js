@@ -99,5 +99,15 @@ export const NewMembers = async (req, res) => {
     }
   };
 
+ export const userNames = async (req, res) => {
+    try {
+      const user = await User.find({}).select("name _id");
+      res.status(200).json(user);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+
 
   
