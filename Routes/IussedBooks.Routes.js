@@ -1,4 +1,11 @@
-import {  issueBook, returnBook, getIssuedBookCount, overdueBook, payFine, fine } from "../Controllers/IssuedBook.Controller";
+import {
+  issueBook,
+  returnBook,
+  getIssuedBookCount,
+  overdueBook,
+  payFine,
+  fine,
+} from "../Controllers/IssuedBook.Controller.js";
 
 import express from "express";
 
@@ -10,3 +17,5 @@ router.get("/issuedbookcount", getIssuedBookCount);
 router.get("/overduebook", overdueBook);
 router.put("/payfine/:id", payFine);
 router.get("/fine", fine);
+
+export default router;

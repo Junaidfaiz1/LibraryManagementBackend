@@ -4,6 +4,7 @@ dotenv.config();
 import connectDB from "./config/Database.js";
 import bookRoutes from "./Routes/Book.Routes.js";
 import userRoutes from "./Routes/User.Routes.js";
+import IssuedBookRoutes from "./Routes/IussedBooks.Routes.js";
 import cors from "cors";
 
 const app = express();
@@ -14,6 +15,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/api", bookRoutes);
 app.use("/api", userRoutes);
+app.use("/api", IssuedBookRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello World");
