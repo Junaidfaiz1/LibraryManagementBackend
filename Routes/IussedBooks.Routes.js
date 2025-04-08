@@ -5,6 +5,7 @@ import {
   overdueBook,
   payFine,
   fine,
+  getIssuedBooks
 } from "../Controllers/IssuedBook.Controller.js";
 
 import express from "express";
@@ -17,5 +18,6 @@ router.get("/issuedbookcount", getIssuedBookCount);
 router.get("/overduebook", overdueBook);
 router.put("/payfine/:id", payFine);
 router.get("/fine", fine);
+router.get("/getissuedbooks", getIssuedBooks);
 
 export default router;

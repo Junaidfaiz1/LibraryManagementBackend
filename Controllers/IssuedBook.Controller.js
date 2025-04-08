@@ -2,8 +2,6 @@ import IssuedBook from "../Models/IssuedBook.Model.js";
 
 export const issueBook = async (req, res) => {
   try {
-    console.log(req.body);
-    // Check if the book is already issued
     const { bookId, userId, issueDate, returnDate } = req.body;
     const newIssuedBook = new IssuedBook({
       bookId,
@@ -15,6 +13,31 @@ export const issueBook = async (req, res) => {
     res.status(200).json({
       message: "Book issued successfully",
     });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getIssuedBooks = async (req, res) => {
+  try {
+    const issuedBooks = await IssuedBook.find({})
+      .populate("bookId", "title") // Only get book title
+      .populate("userId", "name") // Only get user name
+      .select("bookId userId issueDate returnDate")
+      .sort({ issueDate: -1 }) // Sort by issue date in descending order
+      .limit(4);
+
+    const formattedData = issuedBooks.map((book) => ({
+      bookTitle: book.bookId.title,
+      userName: book.userId.name,
+      issueDate: book.issueDate.toISOString().split("T")[0],
+      returnDate: book.returnDate.toISOString().split("T")[0],
+    }));
+
+    if (issuedBooks.length === 0) {
+      return res.status(404).json({ message: "No issued books found" });
+    }
+    res.status(200).json(formattedData);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
