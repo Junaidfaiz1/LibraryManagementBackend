@@ -5,6 +5,17 @@ import jwt from "jsonwebtoken";
 export const registerUser = async (req, res) => {
   try {
     const { name, rnumber, department, email, password } = req.body;
+    if (!name || !rnumber || !department || !email || !password) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    const existingUser = await User.findOne({ $or: [{ rnumber }, { email }] });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ error: "Email or Rnumber is already present" });
+    }
+
     const newuser = new User({
       name,
       rnumber,
@@ -83,31 +94,30 @@ export const deleteUser = async (req, res) => {
 };
 
 export const NewMembers = async (req, res) => {
-    try {
-      const members = await User.countDocuments({
-        createdAt: { 
-          $gte: new Date(new Date().setDate(new Date().getDate() - 30)) 
-        },
-      });
-  
-      res.status(200).json({
-        members,
-        message: "New Members Get Successfully",
-      });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  };
+  try {
+    const members = await User.countDocuments({
+      createdAt: {
+        $gte: new Date(new Date().setDate(new Date().getDate() - 30)),
+      },
+    });
 
- export const userNames = async (req, res) => {
-    try {
-      const user = await User.find({}).select("name _id");
-      res.status(200).json(user);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
+    res.status(200).json({
+      members,
+      message: "New Members Get Successfully",
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
+};
+
+export const userNames = async (req, res) => {
+  try {
+    const user = await User.find({}).select("name _id");
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 
 
-  

@@ -73,14 +73,9 @@ export const getIssuedBookCount = async (req, res) => {
 };
 
 
-
-
-
-
-
-export const getIssuedBooksdetails = async (req, res) => {
+export const overduebooks = async (req, res) => {
   try {
-    const issuedBooks = await IssuedBook.find({ returnDate: { $lt: new Date() } })
+    const issuedBooks = await IssuedBook.find({ returnDate: { $lt: new Date() }, status: "issued", overdue: "unpaid" })
       .populate("bookId", "title author") 
       .populate("userId", "name") 
       .select("bookId userId status overdue")
@@ -104,3 +99,41 @@ export const getIssuedBooksdetails = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+export const overduePaid = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const issuedBook = await IssuedBook.findById(id);
+    if (issuedBook.overdue === "paid") {
+      return res.status(400).json({ message: "Overdue already paid" });
+    }
+    issuedBook.overdue = "paid";
+    await issuedBook.save();
+    res.status(200).json({ message: "Overdue paid successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+
+export const totalIssuedBooks = async (req, res) => {
+  try {
+    const count = await IssuedBook.countDocuments({ status: "issued"});
+    res.status(200).json(count);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+export const totaloverduebooks = async (req, res) => {
+  try {
+    const count = await IssuedBook.countDocuments({ overdue: "unpaid" });
+    res.status(200).json(count);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+
+
