@@ -20,12 +20,21 @@ export const issueBook = async (req, res) => {
 
 export const getIssuedBooks = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 4;
+    const skip = (page - 1) * limit;
+
+    const totalCount = await IssuedBook.countDocuments({
+      status: "issued",
+    });
+
     const issuedBooks = await IssuedBook.find({ status: "issued" })
       .populate("bookId", "title") // Only get book title
       .populate("userId", "name") // Only get user name
       .select("bookId userId issueDate returnDate")
-      .sort({ issueDate: -1 }) // Sort by issue date in descending order
-      .limit(4);
+      .sort({ issueDate: -1 })
+      .skip(skip)
+      .limit(limit);
 
     const formattedData = issuedBooks.map((book) => ({
       id: book._id,
@@ -38,7 +47,11 @@ export const getIssuedBooks = async (req, res) => {
     if (issuedBooks.length === 0) {
       return res.status(404).json({ message: "No issued books found" });
     }
-    res.status(200).json(formattedData);
+    res.status(200).json({
+      formattedData,
+      pages: Math.ceil(totalCount / limit),
+      currentPage: page,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -75,10 +88,10 @@ export const getIssuedBookCount = async (req, res) => {
 export const overduebooks = async (req, res) => {
   try {
     const issuedBooks = await IssuedBook.find({
-      $or: [
-     
-      { status: "issued" },
-      { overdue: "unpaid" },
+      $and: [
+        { returnDate: { $lt: new Date() } },
+        { status: "issued" },
+        { overdue: "unpaid" },
       ],
     })
       .populate("bookId", "title author")
@@ -131,7 +144,9 @@ export const totalIssuedBooks = async (req, res) => {
 
 export const totaloverduebooks = async (req, res) => {
   try {
-    const count = await IssuedBook.countDocuments({ overdue: "unpaid" });
+    const count = await IssuedBook.countDocuments({
+      $and: [{ returnDate: { $lt: new Date() } }, { status: "issued" }],
+    });
     res.status(200).json(count);
   } catch (error) {
     res.status(500).json({ error: error.message });
