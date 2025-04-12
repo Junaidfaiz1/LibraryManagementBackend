@@ -72,12 +72,17 @@ export const getIssuedBookCount = async (req, res) => {
   }
 };
 
-
 export const overduebooks = async (req, res) => {
   try {
-    const issuedBooks = await IssuedBook.find({ returnDate: { $lt: new Date() }, status: "issued", overdue: "unpaid" })
-      .populate("bookId", "title author") 
-      .populate("userId", "name") 
+    const issuedBooks = await IssuedBook.find({
+      $or: [
+     
+      { status: "issued" },
+      { overdue: "unpaid" },
+      ],
+    })
+      .populate("bookId", "title author")
+      .populate("userId", "name")
       .select("bookId userId status overdue")
       .sort({ issueDate: -1 })
       .limit(4);
@@ -100,7 +105,6 @@ export const overduebooks = async (req, res) => {
   }
 };
 
-
 export const overduePaid = async (req, res) => {
   try {
     const id = req.params.id;
@@ -114,17 +118,16 @@ export const overduePaid = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-}
-
+};
 
 export const totalIssuedBooks = async (req, res) => {
   try {
-    const count = await IssuedBook.countDocuments({ status: "issued"});
+    const count = await IssuedBook.countDocuments({ status: "issued" });
     res.status(200).json(count);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-}
+};
 
 export const totaloverduebooks = async (req, res) => {
   try {
@@ -133,7 +136,4 @@ export const totaloverduebooks = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-}
-
-
-
+};
