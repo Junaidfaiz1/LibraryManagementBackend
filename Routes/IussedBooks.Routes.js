@@ -1,7 +1,7 @@
 import {
   issueBook,
   returnBook,
-  getIssuedBookCount,
+ 
   overduePaid,
   getIssuedBooks,
   overduebooks,
@@ -15,7 +15,7 @@ const router = express.Router();
 
 router.post("/issuebook", issueBook);
 router.put("/returnbook/:id", returnBook);
-router.get("/issuedbookcount", getIssuedBookCount);
+
 router.put("/overduepaid/:id", overduePaid);
 router.get("/totalissuedbooks", totalIssuedBooks);
 router.get("/totaloverduebooks", totaloverduebooks);

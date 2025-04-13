@@ -54,8 +54,14 @@ export const getBookCount = async (req, res) => {
 
 export const getBookForDashboard = async (req, res) => {
   try {
-    const books = await Book.find({}).limit(4);
-    res.status(200).json(books);
+    const page = Number(req.query.page) || 1;
+    const limit = 4;
+    const skip = (page - 1) * limit;
+    const totalCount = await Book.countDocuments();
+    const totalPages = Math.ceil(totalCount / limit);
+
+    const books = await Book.find({}).limit(limit).skip(skip);
+    res.status(200).json({books, pages: totalPages, currentPage: page});
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

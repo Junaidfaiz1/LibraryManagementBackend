@@ -74,8 +74,15 @@ export const getUserCount = async (req, res) => {
 
 export const getUserForDashboard = async (req, res) => {
   try {
-    const users = await User.find().limit(4);
-    res.status(200).json(users);
+    const limit = 4;
+    const page = Number(req.query.page) || 1;
+    const skip = (page - 1) * limit;
+    const totalCount = await User.countDocuments();
+    const totalpages = Math.ceil(totalCount / limit);
+
+
+    const users = await User.find().limit(limit).skip(skip);
+    res.status(200).json({users, page: totalpages , currentPage: page});
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

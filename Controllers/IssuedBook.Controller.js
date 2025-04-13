@@ -1,8 +1,22 @@
+import Book from "../Models/Books.Model.js";
 import IssuedBook from "../Models/IssuedBook.Model.js";
 
 export const issueBook = async (req, res) => {
   try {
     const { bookId, userId, issueDate, returnDate } = req.body;
+    const book = await Book.findById(bookId);
+
+    if (!book) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+
+    if (book.quantity <= 0) {
+      return res.status(400).json({ message: "Book not available" });
+    }
+
+    book.quantity -= 1;
+    await book.save();
+
     const newIssuedBook = new IssuedBook({
       bookId,
       userId,
@@ -72,25 +86,23 @@ export const returnBook = async (req, res) => {
   }
 };
 
-export const getIssuedBookCount = async (req, res) => {
-  try {
-    const count = await IssuedBook.countDocuments({
-      issueDate: {
-        $gte: new Date(new Date().setDate(new Date().getDate() - 30)),
-      },
-    });
-    res.status(200).json(count);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
 export const overduebooks = async (req, res) => {
   try {
-    const issuedBooks = await IssuedBook.find({
+    const page = Number(req.query.page) || 1;
+    const limit = 4;
+    const skip = (page - 1) * limit;
+
+    const totalCount = await IssuedBook.countDocuments({
       $and: [
         { returnDate: { $lt: new Date() } },
         { status: "issued" },
+        { overdue: "unpaid" },
+      ],
+    });
+
+    const issuedBooks = await IssuedBook.find({
+      $and: [
+        { returnDate: { $lt: new Date() } },
         { overdue: "unpaid" },
       ],
     })
@@ -98,7 +110,8 @@ export const overduebooks = async (req, res) => {
       .populate("userId", "name")
       .select("bookId userId status overdue")
       .sort({ issueDate: -1 })
-      .limit(4);
+      .limit(limit)
+      .skip(skip);
 
     const formattedData = issuedBooks.map((book) => ({
       id: book._id,
@@ -112,7 +125,11 @@ export const overduebooks = async (req, res) => {
     if (issuedBooks.length === 0) {
       return res.status(404).json({ message: "No issued books found" });
     }
-    res.status(200).json(formattedData);
+    res.status(200).json({
+      formattedData,
+      pages: Math.ceil(totalCount / limit),
+      currentPage: page,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -145,7 +162,11 @@ export const totalIssuedBooks = async (req, res) => {
 export const totaloverduebooks = async (req, res) => {
   try {
     const count = await IssuedBook.countDocuments({
-      $and: [{ returnDate: { $lt: new Date() } }, { status: "issued" }],
+      $and: [
+        { returnDate: { $lt: new Date() } },
+       
+        { overdue: "unpaid" },
+      ],
     });
     res.status(200).json(count);
   } catch (error) {
