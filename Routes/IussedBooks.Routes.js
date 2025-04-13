@@ -1,12 +1,11 @@
 import {
   issueBook,
   returnBook,
- 
   overduePaid,
   getIssuedBooks,
   overduebooks,
   totalIssuedBooks,
-  totaloverduebooks
+  totaloverduebooks,
 } from "../Controllers/IssuedBook.Controller.js";
 
 import express from "express";

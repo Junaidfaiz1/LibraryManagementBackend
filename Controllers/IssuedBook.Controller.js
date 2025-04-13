@@ -34,33 +34,42 @@ export const issueBook = async (req, res) => {
 
 export const getIssuedBooks = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
+    const page = Number(req.query.page) || 1;
     const limit = 4;
     const skip = (page - 1) * limit;
 
-    const totalCount = await IssuedBook.countDocuments({
-      status: "issued",
+    //  Step 1: Clean up invalid records
+    await IssuedBook.deleteMany({
+      $or: [{ bookId: null }, { userId: null }],
     });
 
+    // Get total valid records
+    const totalCount = await IssuedBook.countDocuments({ status: "issued" });
+
+    //  Paginated and populated fetch
     const issuedBooks = await IssuedBook.find({ status: "issued" })
-      .populate("bookId", "title") // Only get book title
-      .populate("userId", "name") // Only get user name
+      .populate("bookId", "title")
+      .populate("userId", "name")
       .select("bookId userId issueDate returnDate")
       .sort({ issueDate: -1 })
       .skip(skip)
       .limit(limit);
 
+    //  Format response
     const formattedData = issuedBooks.map((book) => ({
       id: book._id,
-      bookTitle: book.bookId.title,
-      userName: book.userId.name,
+      bookTitle: book.bookId?.title || "Book Removed",
+      userName: book.userId?.name || "Student Removed",
       issueDate: book.issueDate.toISOString().split("T")[0],
       returnDate: book.returnDate.toISOString().split("T")[0],
     }));
 
+    //  Handle empty data
     if (issuedBooks.length === 0) {
       return res.status(404).json({ message: "No issued books found" });
     }
+
+    // Return paginated response
     res.status(200).json({
       formattedData,
       pages: Math.ceil(totalCount / limit),
@@ -93,16 +102,13 @@ export const overduebooks = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const totalCount = await IssuedBook.countDocuments({
-      $and: [
-        { returnDate: { $lt: new Date() } },
-        { status: "issued" },
-        { overdue: "unpaid" },
-      ],
+      $and: [{ returnDate: { $lt: new Date() } }, { overdue: "unpaid" }],
     });
 
     const issuedBooks = await IssuedBook.find({
       $and: [
         { returnDate: { $lt: new Date() } },
+        { status: "issued" },
         { overdue: "unpaid" },
       ],
     })
@@ -162,11 +168,7 @@ export const totalIssuedBooks = async (req, res) => {
 export const totaloverduebooks = async (req, res) => {
   try {
     const count = await IssuedBook.countDocuments({
-      $and: [
-        { returnDate: { $lt: new Date() } },
-       
-        { overdue: "unpaid" },
-      ],
+      $and: [{ returnDate: { $lt: new Date() } }, { overdue: "unpaid" }],
     });
     res.status(200).json(count);
   } catch (error) {
