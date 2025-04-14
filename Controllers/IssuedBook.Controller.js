@@ -108,7 +108,7 @@ export const overduebooks = async (req, res) => {
     const issuedBooks = await IssuedBook.find({
       $and: [
         { returnDate: { $lt: new Date() } },
-        { status: "issued" },
+        
         { overdue: "unpaid" },
       ],
     })
@@ -175,3 +175,82 @@ export const totaloverduebooks = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const AllIssuedBooks = async (req, res) => {
+  try {
+    
+ // Clean up invalid records
+    await IssuedBook.deleteMany({
+      $or: [{ bookId: null }, { userId: null }],
+    });
+
+
+    //  Paginated and populated fetch
+    const issuedBooks = await IssuedBook.find({ status: "issued" })
+      .populate("bookId", "title")
+      .populate("userId", "name")
+      .select("bookId userId issueDate returnDate")
+      .sort({ issueDate: -1 })
+      
+
+    //  Format response
+    const formattedData = issuedBooks.map((book) => ({
+      id: book._id,
+      bookTitle: book.bookId?.title || "Book Removed",
+      userName: book.userId?.name || "Student Removed",
+      issueDate: book.issueDate.toISOString().split("T")[0],
+      returnDate: book.returnDate.toISOString().split("T")[0],
+    }));
+
+    //  Handle empty data
+    if (issuedBooks.length === 0) {
+      return res.status(404).json({ message: "No issued books found" });
+    }
+
+    // Return paginated response
+    res.status(200).json({
+      formattedData
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+
+export const Alloverduebooksdetails = async (req, res) => {
+  try {
+    
+    const issuedBooks = await IssuedBook.find({
+      $and: [
+        { returnDate: { $lt: new Date() } },
+        
+        { overdue: "unpaid" },
+      ],
+    })
+      .populate("bookId", "title author")
+      .populate("userId", "name")
+      .select("bookId userId status overdue")
+      .sort({ issueDate: -1 })
+    
+
+    const formattedData = issuedBooks.map((book) => ({
+      id: book._id,
+      bookTitle: book.bookId.title,
+      userName: book.userId.name,
+      status: book.status,
+      overdue: book.overdue,
+      author: book.bookId.author,
+    }));
+
+    if (issuedBooks.length === 0) {
+      return res.status(404).json({ message: "No issued books found" });
+    }
+    res.status(200).json({
+      formattedData,
+     
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
